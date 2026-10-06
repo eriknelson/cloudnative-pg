@@ -1921,9 +1921,8 @@ jobs:
             fi
           done < <(aws ec2 describe-volumes --region "${REGION_NAME}" --query 'Volumes[?not_null(Tags[?Key == `kubernetes.io/cluster/'"$CLUSTER_NAME"'` && Value == `owned`].Value)].VolumeId' | jq -r '.[]' || true)
 
-  # GKE Secrets required
-  # secrets.GCP_PROJECT_ID
-  # GKE Variables required for Workload Identity Federation:
+  # GKE Variables required
+  # vars.GCP_PROJECT_ID
   # vars.GCP_WORKLOAD_IDENTITY_PROVIDER
   # vars.GCP_SERVICE_ACCOUNT
 
@@ -2037,7 +2036,7 @@ jobs:
         name: Set up Cloud SDK and kubectl
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
           install_components: 'kubectl,gke-gcloud-auth-plugin'
       -
         name: Create GKE cluster
@@ -2069,7 +2068,7 @@ jobs:
         env:
           USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
         run: |
-          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --region ${{ env.REGION }} --project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --region ${{ env.REGION }} --project ${{ vars.GCP_PROJECT_ID }}
       -
         name: Configure Storage
         run: |
@@ -2249,8 +2248,7 @@ jobs:
   # secrets.AWS_SECRET_ACCESS_KEY
   # The platform is selected by vars.OPENSHIFT_PLATFORM ('aws' by default, or 'gcp').
   # Both need vars.OPENSHIFT_BASE_DOMAIN, the base domain of a public DNS zone.
-  # 'gcp' also requires secrets.GCP_PROJECT_ID and the GCP authentication
-  # described in the GKE section above.
+  # 'gcp' also requires the GCP authentication described in the GKE section above.
 
   e2e-openshift:
     name: Run E2E on OpenShift
@@ -2309,7 +2307,7 @@ jobs:
       AWS_EKS_ADMIN_IAM_ROLES: ${{ secrets.AWS_EKS_ADMIN_IAM_ROLES }}
 
       # GCP configuration
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       GCP_REGION: ${{ vars.GKE_REGION || 'europe-west4' }}
 
       REDHAT_PULL: ${{ secrets.REDHAT_PULL }}
