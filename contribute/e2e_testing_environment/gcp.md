@@ -157,10 +157,6 @@ Variables:
 Secrets:
 
 - `GCP_PROJECT_ID`: the ID of the Google Cloud project.
-- `GCP_SERVICE_ACCOUNT`: the JSON key of a service account. It is only used
-  when `GCP_WORKLOAD_IDENTITY_PROVIDER` is not set. It has the same name as
-  the variable above but holds something else. Never put the key in the
-  variable, variables are not encrypted.
 
 For the `openshift` job on Google Cloud also set:
 

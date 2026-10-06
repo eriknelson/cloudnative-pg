@@ -1925,9 +1925,7 @@ jobs:
   # secrets.GCP_PROJECT_ID
   # GKE Variables required for Workload Identity Federation:
   # vars.GCP_WORKLOAD_IDENTITY_PROVIDER
-  # vars.GCP_SERVICE_ACCOUNT (the email of the service account to impersonate)
-  # Legacy, used only while vars.GCP_WORKLOAD_IDENTITY_PROVIDER is unset:
-  # secrets.GCP_SERVICE_ACCOUNT (the JSON key of a service account, not the variable above)
+  # vars.GCP_SERVICE_ACCOUNT
 
   e2e-gke:
     name: Run E2E on Google GKE
@@ -2029,22 +2027,12 @@ jobs:
           SHORT_ID=$( echo "${MATRIX}" | tr -d '_.-' | tr '[:upper:]' '[:lower:]')
           echo "CLUSTER_NAME=${E2E_SUFFIX}-${GITHUB_RUN_NUMBER}-${SHORT_ID}" >> $GITHUB_ENV
       -
-        name: Authenticate to Google Cloud (Workload Identity Federation)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+        name: Authenticate to Google Cloud
         id: 'auth'
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-      -
-        # Used when Workload Identity Federation is not configured. It reads the
-        # secret GCP_SERVICE_ACCOUNT (the JSON key), not the variable of that name.
-        name: Authenticate to Google Cloud (service account key)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
-        id: 'auth-legacy'
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
-        with:
-          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
       -
         name: Set up Cloud SDK and kubectl
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
@@ -2384,20 +2372,12 @@ jobs:
           openshift-install: ${{ env.K8S_VERSION }}
           oc: ${{ env.K8S_VERSION }}
       -
-        name: Authenticate to Google Cloud (Workload Identity Federation)
-        if: ${{ env.OPENSHIFT_PLATFORM == 'gcp' && vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+        name: Authenticate to Google Cloud
+        if: ${{ env.OPENSHIFT_PLATFORM == 'gcp' }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-      -
-        # Used when Workload Identity Federation is not configured. It reads the
-        # secret GCP_SERVICE_ACCOUNT (the JSON key), not the variable of that name.
-        name: Authenticate to Google Cloud (service account key)
-        if: ${{ env.OPENSHIFT_PLATFORM == 'gcp' && vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
-        with:
-          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
       -
         name: Install OpenShift Cluster ${{ env.K8S_VERSION }}
         timeout-minutes: 60
